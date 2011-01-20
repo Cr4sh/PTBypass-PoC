@@ -584,12 +584,7 @@ NTSTATUS __fastcall new_IofCompleteRequest(
         if (Stack->MajorFunction == IRP_MJ_CREATE &&
             Stack->FileObject)
         {
-            POBJECT_NAME_INFORMATION NameInfo = GetObjectName(Stack->FileObject);
-            if (NameInfo)
-            {
-                DbgMsg(__FILE__, __LINE__, __FUNCTION__"(): IRP_MJ_CREATE '%wZ'\n", &NameInfo->Name);
-                M_FREE(NameInfo);
-            }
+            DbgMsg(__FILE__, __LINE__, __FUNCTION__"(): IRP_MJ_CREATE (DevObj="IFMT")\n", Stack->DeviceObject);            
         }
     }
 
