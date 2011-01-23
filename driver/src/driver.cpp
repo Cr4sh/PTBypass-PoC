@@ -311,9 +311,9 @@ __declspec(naked) ULONG __stdcall GetCR4(void)
     __asm 
     {
         // mov eax, cr4
-        __emit 0x0F 
-        __emit 0x20 
-        __emit 0xE0
+        __emit  0x0F 
+        __emit  0x20 
+        __emit  0xE0
         ret
     }
 }
@@ -323,10 +323,20 @@ __declspec(naked) ULONG __stdcall GetCR3(void)
     __asm 
     {
         // mov eax, cr3
-        __emit 0x0F 
-        __emit 0x20 
-        __emit 0xD8
+        __emit  0x0F 
+        __emit  0x20 
+        __emit  0xD8
         ret
+    }
+}
+//--------------------------------------------------------------------------------------
+__declspec(naked) void __stdcall FlushTlbEntry(PVOID Address)
+{    
+    __asm 
+    {
+        mov     eax, Address
+        invlpg  [eax]
+        retn    4
     }
 }
 //--------------------------------------------------------------------------------------
@@ -378,7 +388,9 @@ BOOLEAN SetPfnsForAddress(PVOID Address, ULONG PagesCount, PHYSICAL_ADDRESS *Phy
         }
 
         PhysicalAddrPage.QuadPart += PAGE_SIZE;
-    }    
+    }   
+
+    FlushTlbEntry(Address);
 
     KeLowerIrql(OldIrql);
 
