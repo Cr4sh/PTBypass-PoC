@@ -390,7 +390,7 @@ BOOLEAN SetPfnsForAddress(PVOID Address, ULONG PagesCount, PHYSICAL_ADDRESS *Phy
         PhysicalAddrPage.QuadPart += PAGE_SIZE;
     }   
 
-    FlushTlbEntry(Address);
+    ForEachProcessor(FlushTlbEntry, Address);
 
     KeLowerIrql(OldIrql);
 
